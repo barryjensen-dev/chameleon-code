@@ -7,8 +7,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Lock, Unlock, Play, Download, Upload, Share, Settings, HelpCircle, Cog } from 'lucide-react';
+import { Shield, Lock, Unlock, Play, Download, Upload, Share, Settings, HelpCircle, Cog, GitCompare, Eye } from 'lucide-react';
 import MonacoEditor from '@/components/MonacoEditor';
+import CodeDiffViewer from '@/components/CodeDiffViewer';
 import type { ProcessRequest } from '@shared/schema';
 
 interface ProcessingStats {
@@ -60,6 +61,8 @@ export default function Home() {
     processingTime: 0,
   });
   const [statusMessage, setStatusMessage] = useState('Ready');
+  const [activeTab, setActiveTab] = useState<'editor' | 'diff'>('editor');
+  const [diffViewMode, setDiffViewMode] = useState<'side-by-side' | 'inline'>('side-by-side');
 
   const { toast } = useToast();
 
@@ -86,6 +89,13 @@ export default function Home() {
         title: 'Success',
         description: `Code ${currentMode}d successfully in ${data.processingTime}ms`,
       });
+      
+      // Switch to diff view after successful processing if we have both codes
+      setTimeout(() => {
+        if (data.outputCode && inputCode) {
+          setActiveTab('diff');
+        }
+      }, 500);
     },
     onError: (error) => {
       setStatusMessage('Processing failed');
@@ -393,38 +403,111 @@ export default function Home() {
           {/* Editor Tabs */}
           <div className="bg-sidebar-dark border-b border-border-dark px-4">
             <div className="flex space-x-1">
-              <button className="px-4 py-3 text-sm font-medium text-white bg-editor-dark border-b-2 border-roblox-blue">
-                <Cog className="w-4 h-4 mr-2 inline" />
-                Input Script
+              <button 
+                className={`px-4 py-3 text-sm font-medium transition-colors ${
+                  activeTab === 'editor' 
+                    ? 'text-white bg-editor-dark border-b-2 border-roblox-blue' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                onClick={() => setActiveTab('editor')}
+                data-testid="tab-editor"
+              >
+                <Eye className="w-4 h-4 mr-2 inline" />
+                Code Editor
               </button>
-              <button className="px-4 py-3 text-sm font-medium text-gray-400 hover:text-white transition-colors">
-                <Shield className="w-4 h-4 mr-2 inline" />
-                Output Script
+              <button 
+                className={`px-4 py-3 text-sm font-medium transition-colors ${
+                  activeTab === 'diff' 
+                    ? 'text-white bg-editor-dark border-b-2 border-roblox-blue' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                onClick={() => setActiveTab('diff')}
+                disabled={!outputCode}
+                data-testid="tab-diff"
+              >
+                <GitCompare className="w-4 h-4 mr-2 inline" />
+                Code Differences
               </button>
             </div>
           </div>
 
           {/* Editor Container */}
-          <div className="flex-1 grid grid-cols-2 gap-0 overflow-hidden">
-            {/* Input Editor */}
-            <div className="border-r border-border-dark">
-              <MonacoEditor
-                value={inputCode}
-                onChange={setInputCode}
-                language="lua"
-                placeholder="-- Paste your Lua code here..."
-              />
-            </div>
+          <div className="flex-1 overflow-hidden">
+            {activeTab === 'editor' ? (
+              <div className="h-full grid grid-cols-2 gap-0">
+                {/* Input Editor */}
+                <div className="border-r border-border-dark">
+                  <MonacoEditor
+                    value={inputCode}
+                    onChange={setInputCode}
+                    language="lua"
+                    placeholder="-- Paste your Lua code here..."
+                  />
+                </div>
 
-            {/* Output Editor */}
-            <div>
-              <MonacoEditor
-                value={outputCode}
-                language="lua"
-                readOnly={true}
-                placeholder="Processed code will appear here..."
-              />
-            </div>
+                {/* Output Editor */}
+                <div>
+                  <MonacoEditor
+                    value={outputCode}
+                    language="lua"
+                    readOnly={true}
+                    placeholder="Processed code will appear here..."
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="h-full p-4">
+                {outputCode ? (
+                  <div className="h-full">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium text-white mb-1">Code Comparison</h3>
+                        <p className="text-xs text-gray-400">
+                          <span className="text-red-400">Red highlights</span> show removed code, 
+                          <span className="text-mint-green ml-2">green highlights</span> show added/modified code
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-400">View:</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 px-3 text-xs ${diffViewMode === 'side-by-side' ? 'bg-roblox-blue text-white' : 'text-gray-400'}`}
+                          onClick={() => setDiffViewMode('side-by-side')}
+                          data-testid="button-side-by-side"
+                        >
+                          Side by Side
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 px-3 text-xs ${diffViewMode === 'inline' ? 'bg-roblox-blue text-white' : 'text-gray-400'}`}
+                          onClick={() => setDiffViewMode('inline')}
+                          data-testid="button-inline"
+                        >
+                          Inline
+                        </Button>
+                      </div>
+                    </div>
+                    <CodeDiffViewer
+                      originalCode={inputCode}
+                      modifiedCode={outputCode}
+                      language="lua"
+                      height="calc(100% - 80px)"
+                      viewMode={diffViewMode}
+                    />
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center text-gray-400">
+                      <GitCompare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg font-medium mb-2">No Code Differences Available</p>
+                      <p className="text-sm">Process some code to see the differences between input and output</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Status Bar */}
