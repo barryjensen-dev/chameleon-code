@@ -241,7 +241,6 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <Shield className="text-roblox-blue text-xl" />
               <h1 className="text-xl font-semibold text-white">
                 Chameleon Code
               </h1>
