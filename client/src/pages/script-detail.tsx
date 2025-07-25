@@ -1,60 +1,84 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRoute, Link } from 'wouter';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { Heart, Eye, MessageCircle, ArrowLeft, Download, Copy, User, Calendar } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { type SharedScript, type ScriptComment } from '@shared/schema';
-import MonacoEditor from '@/components/MonacoEditor';
-import CodeDiffViewer from '@/components/CodeDiffViewer';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRoute, Link } from "wouter";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import {
+  Heart,
+  Eye,
+  MessageCircle,
+  ArrowLeft,
+  Download,
+  Copy,
+  User,
+  Calendar,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { type SharedScript, type ScriptComment } from "@shared/schema";
+import MonacoEditor from "@/components/MonacoEditor";
+import CodeDiffViewer from "@/components/CodeDiffViewer";
 
 export default function ScriptDetail() {
-  const [, params] = useRoute('/community/:id');
+  const [, params] = useRoute("/community/:id");
   const scriptId = params?.id;
-  const [activeTab, setActiveTab] = useState<'input' | 'output' | 'diff'>('input');
-  const [newComment, setNewComment] = useState('');
+  const [activeTab, setActiveTab] = useState<"input" | "output" | "diff">(
+    "input",
+  );
+  const [newComment, setNewComment] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch script details
   const { data: script, isLoading: scriptLoading } = useQuery({
-    queryKey: ['/api/community/scripts', scriptId],
+    queryKey: ["/api/community/scripts", scriptId],
     queryFn: () => apiRequest(`/api/community/scripts/${scriptId}`),
     enabled: !!scriptId,
   });
 
   // Fetch comments
   const { data: comments, isLoading: commentsLoading } = useQuery({
-    queryKey: ['/api/community/scripts', scriptId, 'comments'],
+    queryKey: ["/api/community/scripts", scriptId, "comments"],
     queryFn: () => apiRequest(`/api/community/scripts/${scriptId}/comments`),
     enabled: !!scriptId,
   });
 
   // Like script mutation
   const likeScriptMutation = useMutation({
-    mutationFn: ({ action }: { action: 'like' | 'unlike' }) =>
-      apiRequest(`/api/community/scripts/${scriptId}/like`, 'POST', { action, userId: 'anonymous' }),
+    mutationFn: ({ action }: { action: "like" | "unlike" }) =>
+      apiRequest(`/api/community/scripts/${scriptId}/like`, "POST", {
+        action,
+        userId: "anonymous",
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/community/scripts', scriptId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/community/scripts", scriptId],
+      });
     },
   });
 
   // Add comment mutation
   const addCommentMutation = useMutation({
     mutationFn: (content: string) =>
-      apiRequest(`/api/community/scripts/${scriptId}/comments`, 'POST', {
+      apiRequest(`/api/community/scripts/${scriptId}/comments`, "POST", {
         content,
-        userId: 'anonymous',
-        userName: 'Anonymous User',
+        userId: "anonymous",
+        userName: "Anonymous User",
       }),
     onSuccess: () => {
-      setNewComment('');
-      queryClient.invalidateQueries({ queryKey: ['/api/community/scripts', scriptId, 'comments'] });
+      setNewComment("");
+      queryClient.invalidateQueries({
+        queryKey: ["/api/community/scripts", scriptId, "comments"],
+      });
       toast({
         title: "Comment Added",
         description: "Your comment has been posted successfully.",
@@ -71,7 +95,7 @@ export default function ScriptDetail() {
 
   const handleLike = () => {
     // TODO: Track actual like status
-    likeScriptMutation.mutate({ action: 'like' });
+    likeScriptMutation.mutate({ action: "like" });
   };
 
   const handleCopyCode = (code: string) => {
@@ -83,16 +107,16 @@ export default function ScriptDetail() {
   };
 
   const handleDownload = (code: string, filename: string) => {
-    const blob = new Blob([code], { type: 'text/plain' });
+    const blob = new Blob([code], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast({
       title: "File Downloaded",
       description: `${filename} has been downloaded.`,
@@ -100,12 +124,12 @@ export default function ScriptDetail() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -134,8 +158,12 @@ export default function ScriptDetail() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-white mb-4">Script Not Found</h2>
-            <p className="text-slate-400 mb-6">The script you're looking for doesn't exist or has been removed.</p>
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Script Not Found
+            </h2>
+            <p className="text-slate-400 mb-6">
+              The script you're looking for doesn't exist or has been removed.
+            </p>
             <Link href="/community">
               <Button className="bg-[#00A2FF] hover:bg-[#0082CC] text-white">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -170,7 +198,9 @@ export default function ScriptDetail() {
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <CardTitle className="text-white text-2xl mb-2">{script.title}</CardTitle>
+                <CardTitle className="text-white text-2xl mb-2">
+                  {script.title}
+                </CardTitle>
                 <CardDescription className="text-slate-400 flex items-center gap-4">
                   <span className="flex items-center gap-1">
                     <User className="w-4 h-4" />
@@ -183,19 +213,23 @@ export default function ScriptDetail() {
                 </CardDescription>
               </div>
               <Badge
-                variant={script.mode === 'obfuscate' ? 'default' : 'secondary'}
-                className={script.mode === 'obfuscate' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
+                variant={script.mode === "obfuscate" ? "default" : "secondary"}
+                className={
+                  script.mode === "obfuscate"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }
               >
-                {script.mode === 'obfuscate' ? 'Obfuscated' : 'Deobfuscated'}
+                {script.mode === "obfuscate" ? "Obfuscated" : "Deobfuscated"}
               </Badge>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             {script.description && (
               <p className="text-slate-300 mb-4">{script.description}</p>
             )}
-            
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6 text-sm text-slate-400">
                 <span className="flex items-center gap-1">
@@ -211,7 +245,7 @@ export default function ScriptDetail() {
                   {comments?.length || 0} comments
                 </span>
               </div>
-              
+
               <Button
                 onClick={handleLike}
                 disabled={likeScriptMutation.isPending}
@@ -231,33 +265,33 @@ export default function ScriptDetail() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setActiveTab('input')}
+                onClick={() => setActiveTab("input")}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'input'
-                    ? 'bg-[#00A2FF] text-white'
-                    : 'text-slate-400 hover:text-white'
+                  activeTab === "input"
+                    ? "bg-[#00A2FF] text-white"
+                    : "text-slate-400 hover:text-white"
                 }`}
                 data-testid="tab-input-code"
               >
                 Original Code
               </button>
               <button
-                onClick={() => setActiveTab('output')}
+                onClick={() => setActiveTab("output")}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'output'
-                    ? 'bg-[#00A2FF] text-white'
-                    : 'text-slate-400 hover:text-white'
+                  activeTab === "output"
+                    ? "bg-[#00A2FF] text-white"
+                    : "text-slate-400 hover:text-white"
                 }`}
                 data-testid="tab-output-code"
               >
                 Processed Code
               </button>
               <button
-                onClick={() => setActiveTab('diff')}
+                onClick={() => setActiveTab("diff")}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'diff'
-                    ? 'bg-[#00A2FF] text-white'
-                    : 'text-slate-400 hover:text-white'
+                  activeTab === "diff"
+                    ? "bg-[#00A2FF] text-white"
+                    : "text-slate-400 hover:text-white"
                 }`}
                 data-testid="tab-diff-view"
               >
@@ -265,10 +299,10 @@ export default function ScriptDetail() {
               </button>
             </div>
           </CardHeader>
-          
+
           <CardContent className="p-0">
             <div className="border-t border-slate-700">
-              {activeTab === 'input' && (
+              {activeTab === "input" && (
                 <div>
                   <div className="flex items-center justify-between p-4 bg-slate-750 border-b border-slate-700">
                     <h3 className="text-white font-medium">Original Code</h3>
@@ -286,7 +320,12 @@ export default function ScriptDetail() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDownload(script.inputCode, `${script.title}_original.lua`)}
+                        onClick={() =>
+                          handleDownload(
+                            script.inputCode,
+                            `${script.title}_original.lua`,
+                          )
+                        }
                         className="border-slate-600 text-slate-300 hover:bg-slate-700"
                         data-testid="button-download-input"
                       >
@@ -303,8 +342,8 @@ export default function ScriptDetail() {
                   />
                 </div>
               )}
-              
-              {activeTab === 'output' && (
+
+              {activeTab === "output" && (
                 <div>
                   <div className="flex items-center justify-between p-4 bg-slate-750 border-b border-slate-700">
                     <h3 className="text-white font-medium">Processed Code</h3>
@@ -322,7 +361,12 @@ export default function ScriptDetail() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDownload(script.outputCode, `${script.title}_processed.lua`)}
+                        onClick={() =>
+                          handleDownload(
+                            script.outputCode,
+                            `${script.title}_processed.lua`,
+                          )
+                        }
                         className="border-slate-600 text-slate-300 hover:bg-slate-700"
                         data-testid="button-download-output"
                       >
@@ -339,8 +383,8 @@ export default function ScriptDetail() {
                   />
                 </div>
               )}
-              
-              {activeTab === 'diff' && (
+
+              {activeTab === "diff" && (
                 <div>
                   <div className="flex items-center justify-between p-4 bg-slate-750 border-b border-slate-700">
                     <h3 className="text-white font-medium">Code Differences</h3>
@@ -364,7 +408,7 @@ export default function ScriptDetail() {
               Comments ({comments?.length || 0})
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent>
             {/* Add Comment */}
             <div className="mb-6">
@@ -382,7 +426,7 @@ export default function ScriptDetail() {
                 className="bg-[#00A2FF] hover:bg-[#0082CC] text-white"
                 data-testid="button-add-comment"
               >
-                {addCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
+                {addCommentMutation.isPending ? "Adding..." : "Add Comment"}
               </Button>
             </div>
 
@@ -404,19 +448,28 @@ export default function ScriptDetail() {
             ) : comments?.length === 0 ? (
               <div className="text-center py-8">
                 <MessageCircle className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-                <p className="text-slate-400">No comments yet. Be the first to comment!</p>
+                <p className="text-slate-400">
+                  No comments yet. Be the first to comment!
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {comments?.map((comment: ScriptComment) => (
-                  <div key={comment.id} className="border-l-2 border-slate-600 pl-4">
+                  <div
+                    key={comment.id}
+                    className="border-l-2 border-slate-600 pl-4"
+                  >
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-white font-medium text-sm">{comment.userName}</span>
+                      <span className="text-white font-medium text-sm">
+                        {comment.userName}
+                      </span>
                       <span className="text-slate-500 text-xs">
                         {formatDate(comment.createdAt!)}
                       </span>
                     </div>
-                    <p className="text-slate-300 text-sm whitespace-pre-wrap">{comment.content}</p>
+                    <p className="text-slate-300 text-sm whitespace-pre-wrap">
+                      {comment.content}
+                    </p>
                   </div>
                 ))}
               </div>
