@@ -21,6 +21,7 @@ export const processedScripts = pgTable("processed_scripts", {
   variablesRenamed: integer("variables_renamed").default(0),
   stringsEncoded: integer("strings_encoded").default(0),
   processingTime: integer("processing_time").default(0), // in milliseconds
+  benchmarkResults: text("benchmark_results"), // JSON string of benchmark data
   createdAt: timestamp("created_at").defaultNow(),
 });
 
