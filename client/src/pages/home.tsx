@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Lock, Unlock, Play, Download, Upload, Share, Settings, HelpCircle, Cog } from 'lucide-react';
 import MonacoEditor from '@/components/MonacoEditor';
@@ -65,8 +65,12 @@ export default function Home() {
 
   const processMutation = useMutation({
     mutationFn: async (data: ProcessRequest) => {
-      const response = await apiRequest('POST', '/api/process', data);
-      return response.json();
+      try {
+        const response = await apiRequest('POST', '/api/process', data);
+        return await response.json();
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Processing failed');
+      }
     },
     onSuccess: (data) => {
       setOutputCode(data.outputCode);
@@ -442,12 +446,12 @@ export default function Home() {
       {/* Processing Modal */}
       <Dialog open={isProcessing} onOpenChange={() => {}}>
         <DialogContent className="bg-sidebar-dark border-border-dark max-w-md">
+          <DialogTitle className="text-lg font-medium text-white text-center">Processing Script</DialogTitle>
+          <DialogDescription className="text-gray-400 text-sm text-center">Analyzing and transforming your Lua code...</DialogDescription>
           <div className="text-center">
             <div className="processing-animation text-roblox-blue text-3xl mb-4">
               <Cog className="w-8 h-8 mx-auto animate-spin" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">Processing Script</h3>
-            <p className="text-gray-400 text-sm mb-4">Analyzing and transforming your Lua code...</p>
             <div className="w-full bg-editor-grey rounded-full h-2">
               <div 
                 className="bg-roblox-blue h-2 rounded-full transition-all duration-300" 

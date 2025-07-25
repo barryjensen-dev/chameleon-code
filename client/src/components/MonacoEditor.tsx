@@ -154,7 +154,6 @@ export default function MonacoEditor({
       selectionHighlight: false,
       folding: true,
       foldingHighlight: false,
-      unfoldOnClickAfter: 5000,
       contextmenu: true,
       mouseWheelZoom: false,
       cursorSmoothCaretAnimation: 'off',

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a full-stack web application that provides Lua code obfuscation and deobfuscation services. The application features a modern React frontend with a Node.js/Express backend, designed specifically for processing Lua scripts with various obfuscation techniques.
+This is a full-stack web application that provides Lua code obfuscation and deobfuscation services specifically designed for Roblox scripts. The application features a professional Monaco code editor with dual-pane interface, comprehensive obfuscation settings, and file upload/download functionality. Built with a modern React frontend and Node.js/Express backend.
 
 ## User Preferences
 
@@ -103,3 +103,19 @@ Preferred communication style: Simple, everyday language.
 - `npm run db:push`: Push database schema changes
 
 The application is designed to be easily deployable on various platforms, with special considerations for Replit's environment including the cartographer plugin and runtime error overlay for enhanced development experience.
+
+## Recent Changes (January 2025)
+
+✓ Complete Monaco Editor integration with custom Roblox-themed syntax highlighting
+✓ Dual-pane code editor interface with input/output panels  
+✓ Professional Lua obfuscation engine with variable renaming and string encoding
+✓ Comprehensive deobfuscation capabilities for common patterns
+✓ File upload/download functionality for .lua files
+✓ Real-time processing statistics and progress indicators
+✓ Responsive dark theme design matching Roblox colors
+✓ Fixed all TypeScript and accessibility warnings
+✓ Optimized Monaco worker configuration for better performance
+
+## Current Status
+
+The application is fully functional with a professional code editor interface. Users can obfuscate and deobfuscate Lua scripts with various settings, upload/download files, and view processing statistics in real-time. The interface provides a CodePen-like experience specifically tailored for Roblox script development.

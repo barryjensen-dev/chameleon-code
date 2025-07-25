@@ -43,7 +43,16 @@ export class MemStorage implements IStorage {
 
   async createProcessedScript(insertScript: InsertProcessedScript): Promise<ProcessedScript> {
     const id = randomUUID();
-    const script: ProcessedScript = { ...insertScript, id };
+    const script: ProcessedScript = { 
+      ...insertScript, 
+      id,
+      settings: insertScript.settings ?? null,
+      inputLines: insertScript.inputLines ?? 0,
+      outputLines: insertScript.outputLines ?? 0,
+      variablesRenamed: insertScript.variablesRenamed ?? 0,
+      stringsEncoded: insertScript.stringsEncoded ?? 0,
+      processingTime: insertScript.processingTime ?? 0
+    };
     this.processedScripts.set(id, script);
     return script;
   }

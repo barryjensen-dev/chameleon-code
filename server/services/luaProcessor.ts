@@ -146,7 +146,7 @@ function deobfuscateCode(code: string): ProcessResult {
 
   // Try to restore meaningful variable names
   const obfuscatedVariables = code.match(/_0x[a-fA-F0-9]+/g) || [];
-  const uniqueVariables = [...new Set(obfuscatedVariables)];
+  const uniqueVariables = Array.from(new Set(obfuscatedVariables));
   
   const commonNames = [
     'player', 'character', 'humanoid', 'input', 'data', 'value', 'result',
