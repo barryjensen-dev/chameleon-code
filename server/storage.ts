@@ -1,17 +1,17 @@
-import { 
-  users, 
-  processedScripts, 
+import {
+  users,
+  processedScripts,
   sharedScripts,
   scriptLikes,
   scriptComments,
-  type User, 
-  type InsertUser, 
-  type ProcessedScript, 
+  type User,
+  type InsertUser,
+  type ProcessedScript,
   type InsertProcessedScript,
   type SharedScript,
   type InsertSharedScript,
   type ScriptComment,
-  type InsertScriptComment
+  type InsertScriptComment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, count, sql } from "drizzle-orm";
@@ -22,31 +22,36 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // Processed script operations
   getProcessedScript(id: string): Promise<ProcessedScript | undefined>;
-  createProcessedScript(script: InsertProcessedScript): Promise<ProcessedScript>;
+  createProcessedScript(
+    script: InsertProcessedScript,
+  ): Promise<ProcessedScript>;
   getAllProcessedScripts(): Promise<ProcessedScript[]>;
-  
+
   // Community sharing operations
   getSharedScripts(page?: number, limit?: number): Promise<SharedScript[]>;
   getSharedScriptById(id: string): Promise<SharedScript | undefined>;
   createSharedScript(script: InsertSharedScript): Promise<SharedScript>;
-  updateSharedScript(id: string, updates: Partial<InsertSharedScript>): Promise<SharedScript | undefined>;
+  updateSharedScript(
+    id: string,
+    updates: Partial<InsertSharedScript>,
+  ): Promise<SharedScript | undefined>;
   deleteSharedScript(id: string, userId: string): Promise<boolean>;
   searchSharedScripts(query: string): Promise<SharedScript[]>;
   getSharedScriptsByAuthor(authorId: string): Promise<SharedScript[]>;
-  
+
   // Like operations
   likeScript(scriptId: string, userId: string): Promise<boolean>;
   unlikeScript(scriptId: string, userId: string): Promise<boolean>;
   getUserLikedScripts(userId: string): Promise<string[]>;
-  
+
   // Comment operations
   getScriptComments(scriptId: string): Promise<ScriptComment[]>;
   createScriptComment(comment: InsertScriptComment): Promise<ScriptComment>;
   deleteScriptComment(id: string, userId: string): Promise<boolean>;
-  
+
   // Stats operations
   incrementScriptViews(scriptId: string): Promise<void>;
 }
@@ -58,24 +63,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async getProcessedScript(id: string): Promise<ProcessedScript | undefined> {
-    const [script] = await db.select().from(processedScripts).where(eq(processedScripts.id, id));
+    const [script] = await db
+      .select()
+      .from(processedScripts)
+      .where(eq(processedScripts.id, id));
     return script || undefined;
   }
 
-  async createProcessedScript(insertScript: InsertProcessedScript): Promise<ProcessedScript> {
+  async createProcessedScript(
+    insertScript: InsertProcessedScript,
+  ): Promise<ProcessedScript> {
     const [script] = await db
       .insert(processedScripts)
       .values(insertScript)
@@ -100,11 +110,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSharedScriptById(id: string): Promise<SharedScript | undefined> {
-    const [script] = await db.select().from(sharedScripts).where(eq(sharedScripts.id, id));
+    const [script] = await db
+      .select()
+      .from(sharedScripts)
+      .where(eq(sharedScripts.id, id));
     return script || undefined;
   }
 
-  async createSharedScript(insertScript: InsertSharedScript): Promise<SharedScript> {
+  async createSharedScript(
+    insertScript: InsertSharedScript,
+  ): Promise<SharedScript> {
     const [script] = await db
       .insert(sharedScripts)
       .values(insertScript)
@@ -112,7 +127,10 @@ export class DatabaseStorage implements IStorage {
     return script;
   }
 
-  async updateSharedScript(id: string, updates: Partial<InsertSharedScript>): Promise<SharedScript | undefined> {
+  async updateSharedScript(
+    id: string,
+    updates: Partial<InsertSharedScript>,
+  ): Promise<SharedScript | undefined> {
     const [script] = await db
       .update(sharedScripts)
       .set({ ...updates, updatedAt: new Date() })
@@ -135,8 +153,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(sharedScripts.isPublic, true),
-          sql`${sharedScripts.title} ILIKE ${`%${query}%`} OR ${sharedScripts.description} ILIKE ${`%${query}%`}`
-        )
+          sql`${sharedScripts.title} ILIKE ${`%${query}%`} OR ${sharedScripts.description} ILIKE ${`%${query}%`}`,
+        ),
       )
       .orderBy(desc(sharedScripts.createdAt));
   }
@@ -166,8 +184,10 @@ export class DatabaseStorage implements IStorage {
   async unlikeScript(scriptId: string, userId: string): Promise<boolean> {
     const result = await db
       .delete(scriptLikes)
-      .where(and(eq(scriptLikes.scriptId, scriptId), eq(scriptLikes.userId, userId)));
-    
+      .where(
+        and(eq(scriptLikes.scriptId, scriptId), eq(scriptLikes.userId, userId)),
+      );
+
     if ((result.rowCount ?? 0) > 0) {
       await db
         .update(sharedScripts)
@@ -183,7 +203,9 @@ export class DatabaseStorage implements IStorage {
       .select({ scriptId: scriptLikes.scriptId })
       .from(scriptLikes)
       .where(eq(scriptLikes.userId, userId));
-    return likes.map(like => like.scriptId).filter((id): id is string => id !== null);
+    return likes
+      .map((like) => like.scriptId)
+      .filter((id): id is string => id !== null);
   }
 
   // Comment operations
@@ -195,7 +217,9 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(scriptComments.createdAt));
   }
 
-  async createScriptComment(insertComment: InsertScriptComment): Promise<ScriptComment> {
+  async createScriptComment(
+    insertComment: InsertScriptComment,
+  ): Promise<ScriptComment> {
     const [comment] = await db
       .insert(scriptComments)
       .values(insertComment)
@@ -249,10 +273,12 @@ export class MemStorage implements IStorage {
     return this.processedScripts.get(id);
   }
 
-  async createProcessedScript(insertScript: InsertProcessedScript): Promise<ProcessedScript> {
+  async createProcessedScript(
+    insertScript: InsertProcessedScript,
+  ): Promise<ProcessedScript> {
     const id = randomUUID();
-    const script: ProcessedScript = { 
-      ...insertScript, 
+    const script: ProcessedScript = {
+      ...insertScript,
       id,
       settings: insertScript.settings ?? null,
       inputLines: insertScript.inputLines ?? 0,
@@ -260,7 +286,7 @@ export class MemStorage implements IStorage {
       variablesRenamed: insertScript.variablesRenamed ?? 0,
       stringsEncoded: insertScript.stringsEncoded ?? 0,
       processingTime: insertScript.processingTime ?? 0,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
     this.processedScripts.set(id, script);
     return script;
@@ -271,20 +297,48 @@ export class MemStorage implements IStorage {
   }
 
   // Community sharing stubs (not implemented for MemStorage)
-  async getSharedScripts(): Promise<SharedScript[]> { return []; }
-  async getSharedScriptById(): Promise<SharedScript | undefined> { return undefined; }
-  async createSharedScript(): Promise<SharedScript> { throw new Error("Not implemented"); }
-  async updateSharedScript(): Promise<SharedScript | undefined> { return undefined; }
-  async deleteSharedScript(): Promise<boolean> { return false; }
-  async searchSharedScripts(): Promise<SharedScript[]> { return []; }
-  async getSharedScriptsByAuthor(): Promise<SharedScript[]> { return []; }
-  async likeScript(): Promise<boolean> { return false; }
-  async unlikeScript(): Promise<boolean> { return false; }
-  async getUserLikedScripts(): Promise<string[]> { return []; }
-  async getScriptComments(): Promise<ScriptComment[]> { return []; }
-  async createScriptComment(): Promise<ScriptComment> { throw new Error("Not implemented"); }
-  async deleteScriptComment(): Promise<boolean> { return false; }
-  async incrementScriptViews(): Promise<void> { return; }
+  async getSharedScripts(): Promise<SharedScript[]> {
+    return [];
+  }
+  async getSharedScriptById(): Promise<SharedScript | undefined> {
+    return undefined;
+  }
+  async createSharedScript(): Promise<SharedScript> {
+    throw new Error("Not implemented");
+  }
+  async updateSharedScript(): Promise<SharedScript | undefined> {
+    return undefined;
+  }
+  async deleteSharedScript(): Promise<boolean> {
+    return false;
+  }
+  async searchSharedScripts(): Promise<SharedScript[]> {
+    return [];
+  }
+  async getSharedScriptsByAuthor(): Promise<SharedScript[]> {
+    return [];
+  }
+  async likeScript(): Promise<boolean> {
+    return false;
+  }
+  async unlikeScript(): Promise<boolean> {
+    return false;
+  }
+  async getUserLikedScripts(): Promise<string[]> {
+    return [];
+  }
+  async getScriptComments(): Promise<ScriptComment[]> {
+    return [];
+  }
+  async createScriptComment(): Promise<ScriptComment> {
+    throw new Error("Not implemented");
+  }
+  async deleteScriptComment(): Promise<boolean> {
+    return false;
+  }
+  async incrementScriptViews(): Promise<void> {
+    return;
+  }
 }
 
 export const storage = new DatabaseStorage();
