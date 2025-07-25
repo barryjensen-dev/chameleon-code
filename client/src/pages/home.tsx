@@ -204,12 +204,12 @@ export default function Home() {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Shield className="text-roblox-blue text-xl" />
-              <h1 className="text-xl font-semibold text-white">Roblox Lua Obfuscator</h1>
+              <h1 className="text-xl font-semibold text-white">Chameleon Code</h1>
             </div>
             <div className="hidden md:flex items-center space-x-2 text-sm text-gray-400">
               <span className="px-2 py-1 bg-editor-grey rounded">v2.1.0</span>
               <span>•</span>
-              <span>Protect & Analyze Your Scripts</span>
+              <span>Lua Obfuscator</span>
             </div>
           </div>
           <div className="flex items-center space-x-3">
