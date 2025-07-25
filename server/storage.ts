@@ -1,4 +1,6 @@
-import { type User, type InsertUser, type ProcessedScript, type InsertProcessedScript } from "@shared/schema";
+import { users, processedScripts, type User, type InsertUser, type ProcessedScript, type InsertProcessedScript } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -9,6 +11,43 @@ export interface IStorage {
   getProcessedScript(id: string): Promise<ProcessedScript | undefined>;
   createProcessedScript(script: InsertProcessedScript): Promise<ProcessedScript>;
   getAllProcessedScripts(): Promise<ProcessedScript[]>;
+}
+
+export class DatabaseStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getProcessedScript(id: string): Promise<ProcessedScript | undefined> {
+    const [script] = await db.select().from(processedScripts).where(eq(processedScripts.id, id));
+    return script || undefined;
+  }
+
+  async createProcessedScript(insertScript: InsertProcessedScript): Promise<ProcessedScript> {
+    const [script] = await db
+      .insert(processedScripts)
+      .values(insertScript)
+      .returning();
+    return script;
+  }
+
+  async getAllProcessedScripts(): Promise<ProcessedScript[]> {
+    return await db.select().from(processedScripts);
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -62,4 +101,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
