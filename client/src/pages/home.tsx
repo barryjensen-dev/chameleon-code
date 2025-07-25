@@ -7,7 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Lock, Unlock, Play, Download, Upload, Share, Settings, HelpCircle, Cog, GitCompare, Eye } from 'lucide-react';
+import { Shield, Lock, Unlock, Play, Download, Upload, Share, Settings, HelpCircle, Cog, GitCompare, Eye, Users } from 'lucide-react';
+import { Link } from 'wouter';
 import MonacoEditor from '@/components/MonacoEditor';
 import CodeDiffViewer from '@/components/CodeDiffViewer';
 import type { ProcessRequest } from '@shared/schema';
@@ -212,6 +213,12 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            <Link href="/community">
+              <Button variant="ghost" size="sm" className="p-2 text-gray-400 hover:text-roblox-blue hover:bg-editor-grey transition-colors">
+                <Users className="w-4 h-4 mr-2" />
+                Community
+              </Button>
+            </Link>
             <Button variant="ghost" size="sm" className="p-2 text-gray-400 hover:text-white">
               <HelpCircle className="w-4 h-4" />
             </Button>
