@@ -1,17 +1,28 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  varchar,
+  integer,
+  boolean,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
 
 export const processedScripts = pgTable("processed_scripts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   inputCode: text("input_code").notNull(),
   outputCode: text("output_code").notNull(),
   mode: text("mode").notNull(), // 'obfuscate' or 'deobfuscate'
@@ -26,7 +37,9 @@ export const processedScripts = pgTable("processed_scripts", {
 });
 
 export const sharedScripts = pgTable("shared_scripts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description"),
   inputCode: text("input_code").notNull(),
@@ -44,14 +57,18 @@ export const sharedScripts = pgTable("shared_scripts", {
 });
 
 export const scriptLikes = pgTable("script_likes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   scriptId: varchar("script_id").references(() => sharedScripts.id),
   userId: varchar("user_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const scriptComments = pgTable("script_comments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   scriptId: varchar("script_id").references(() => sharedScripts.id),
   userId: varchar("user_id").references(() => users.id),
   userName: text("user_name").notNull(), // denormalized for performance
@@ -66,14 +83,17 @@ export const usersRelations = relations(users, ({ many }) => ({
   scriptComments: many(scriptComments),
 }));
 
-export const sharedScriptsRelations = relations(sharedScripts, ({ one, many }) => ({
-  author: one(users, {
-    fields: [sharedScripts.authorId],
-    references: [users.id],
+export const sharedScriptsRelations = relations(
+  sharedScripts,
+  ({ one, many }) => ({
+    author: one(users, {
+      fields: [sharedScripts.authorId],
+      references: [users.id],
+    }),
+    likes: many(scriptLikes),
+    comments: many(scriptComments),
   }),
-  likes: many(scriptLikes),
-  comments: many(scriptComments),
-}));
+);
 
 export const scriptLikesRelations = relations(scriptLikes, ({ one }) => ({
   script: one(sharedScripts, {
@@ -102,7 +122,9 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
 });
 
-export const insertProcessedScriptSchema = createInsertSchema(processedScripts).omit({
+export const insertProcessedScriptSchema = createInsertSchema(
+  processedScripts,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -115,7 +137,9 @@ export const insertSharedScriptSchema = createInsertSchema(sharedScripts).omit({
   updatedAt: true,
 });
 
-export const insertScriptCommentSchema = createInsertSchema(scriptComments).omit({
+export const insertScriptCommentSchema = createInsertSchema(
+  scriptComments,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -123,12 +147,14 @@ export const insertScriptCommentSchema = createInsertSchema(scriptComments).omit
 export const processRequestSchema = z.object({
   inputCode: z.string().min(1, "Input code is required"),
   mode: z.enum(["obfuscate", "deobfuscate"]),
-  settings: z.object({
-    variableRenaming: z.boolean().default(true),
-    stringEncoding: z.boolean().default(true),
-    controlFlowObfuscation: z.boolean().default(false),
-    obfuscationLevel: z.enum(["light", "medium", "heavy"]).default("medium"),
-  }).optional(),
+  settings: z
+    .object({
+      variableRenaming: z.boolean().default(true),
+      stringEncoding: z.boolean().default(true),
+      controlFlowObfuscation: z.boolean().default(false),
+      obfuscationLevel: z.enum(["light", "medium", "heavy"]).default("medium"),
+    })
+    .optional(),
 });
 
 export const shareScriptSchema = z.object({
